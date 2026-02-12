@@ -162,7 +162,6 @@ local cache = {
 	stats = "",
 	gold = "",
 	loot = "None",
-	lootIcon = nil,
 	dura = nil,
 	fps = 0,
 	ms = 0,
