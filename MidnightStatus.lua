@@ -94,20 +94,6 @@ local function formatCompactGold(copper)
 	return string.format("%sg %ds %dc", goldText, s, c)
 end
 
-local function getLootSpecName()
-	local lootSpecID = GetLootSpecialization()
-	if lootSpecID and lootSpecID ~= 0 then
-		local _, name = GetSpecializationInfoForSpecID(lootSpecID)
-		return name or ("SpecID " .. lootSpecID)
-	end
-	local curIndex = GetSpecialization()
-	if curIndex then
-		local _, name = GetSpecializationInfo(curIndex)
-		return name or "Current"
-	end
-	return "None"
-end
-
 local DURABILITY_SLOTS = {
 	INVSLOT_HEAD,
 	INVSLOT_SHOULDER,
@@ -179,11 +165,13 @@ local function updateTimeLine()
 end
 
 local function updateStatsLine()
-	local icon = specIconTag(cache.lootIcon, 14) or ""
+	local icon = specIconTag(cache.lootIcon, 14) -- must return "" if nil
 	local lootText = cache.loot or "None"
 	local duraText = cache.dura and (cache.dura .. "%") or "--"
 
-	local text = string.format("%dfps %dms %s%s %s", cache.fps or 0, cache.ms or 0, icon, lootText, duraText)
+	local text = string.format("%dfps %dms %s%s %s", cache.fps or 0, cache.ms or 0, icon or "", lootText, duraText)
+
+	setIfChanged(statsFS, cc(text), "stats")
 end
 
 local function updateGoldLine()
