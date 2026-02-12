@@ -1,7 +1,7 @@
 -- MidnightStatus.lua
 -- Stacked HUD: Big Time, small sys stats line, gold line
 -- Tried to make this straight forward enough to now implode anyones games.
--- Made with love, and no software support, only things I and my homies want
+-- Made with love, will def be adding more stuff as time goes on
 
 local ADDON = ...
 MidnightStatusDB = MidnightStatusDB or {}
