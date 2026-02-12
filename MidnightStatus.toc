@@ -1,8 +1,8 @@
 ## Interface: 120000
 ## Title: MidnightStatus
 ## Notes: Lightweight status panel (time, loot spec, gold, durability, FPS, MS)
-## Author: Rammorage - Zul'jin baby 
-## Version: 0.2.0
+## Author: Rammorage - Zul'jin baby this one was for the homies 
+## Version: 0.3.0
 ## SavedVariables: MidnightStatusDB
 ## OptionalDeps: LibEditMode
 ## IconTexture: 136223
