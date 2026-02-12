@@ -1,0 +1,31 @@
+name: Build Release Zip
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Build addon zip (WowUp-friendly)
+        run: |
+          set -euo pipefail
+          mkdir -p dist/MidnightStatus
+          cp -a MidnightStatus.toc MidnightStatus.lua dist/MidnightStatus/
+          cd dist
+          zip -r MidnightStatus.zip MidnightStatus
+          unzip -l MidnightStatus.zip | head -n 50
+
+      - name: Create GitHub Release and upload asset
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/MidnightStatus.zip
+          generate_release_notes: true
