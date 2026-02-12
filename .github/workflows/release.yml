@@ -18,11 +18,12 @@ jobs:
       - name: Build addon zip (WowUp-friendly)
         run: |
           set -euo pipefail
+          ver="${GITHUB_REF_NAME}"
           mkdir -p dist/MidnightStatus
           cp -a MidnightStatus.toc MidnightStatus.lua dist/MidnightStatus/
-          (cd dist && zip -r MidnightStatus.zip MidnightStatus && unzip -l MidnightStatus.zip | head -n 50)
+          (cd dist && zip -r "MidnightStatus-${ver}.zip" MidnightStatus && unzip -l "MidnightStatus-${ver}.zip" | head -n 50)
       - name: Create GitHub Release and upload asset
         uses: softprops/action-gh-release@v2
         with:
-          files: dist/MidnightStatus.zip
+          files: dist/MidnightStatus-${{ github.ref_name }}.zip
           generate_release_notes: true
