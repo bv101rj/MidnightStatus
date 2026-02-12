@@ -179,10 +179,11 @@ local function updateTimeLine()
 end
 
 local function updateStatsLine()
+	local icon = specIconTag(cache.lootIcon, 14) or ""
+	local lootText = cache.loot or "None"
 	local duraText = cache.dura and (cache.dura .. "%") or "--"
-	-- Layout: "###fps  ##ms  loot  dura" (tight like your screenshot)
-	local text = string.format("%dfps %dms %s %s", cache.fps, cache.ms, icon, cache.loot, duraText)
-	setIfChanged(statsFS, cc(text), "stats")
+
+	local text = string.format("%dfps %dms %s%s %s", cache.fps or 0, cache.ms or 0, icon, lootText, duraText)
 end
 
 local function updateGoldLine()
