@@ -76,6 +76,12 @@ local function format24hTime()
 	return date("%H:%M")
 end
 
+-- Call deez icons so we can use them later
+local COIN_SIZE = 14
+local GOLD_ICON = string.format("|TInterface\\MoneyFrame\\UI-GoldIcon:%d:%d:0:0|t", COIN_SIZE, COIN_SIZE)
+local SILVER_ICON = string.format("|TInterface\\MoneyFrame\\UI-SilverIcon:%d:%d:0:0|t", COIN_SIZE, COIN_SIZE)
+local COPPER_ICON = string.format("|TInterface\\MoneyFrame\\UI-CopperIcon:%d:%d:0:0|t", COIN_SIZE, COIN_SIZE)
+
 local function formatCompactGold(copper)
 	local g = math.floor(copper / 10000)
 	local s = math.floor((copper % 10000) / 100)
@@ -90,8 +96,7 @@ local function formatCompactGold(copper)
 	else
 		goldText = tostring(g)
 	end
-
-	return string.format("%sg %ds %dc", goldText, s, c)
+	return string.format("%s%s %d%s %d%s", goldText, GOLD_ICON, s, SILVER_ICON, c, COPPER_ICON)
 end
 
 local DURABILITY_SLOTS = {
