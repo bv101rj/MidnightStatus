@@ -47,6 +47,31 @@ goldFS:SetFont(FONT, 14, "OUTLINE")
 
 -- -------- helpers
 
+local function specIconTag(icon, size)
+	if not icon then
+		return ""
+	end
+	size = size or 14
+	-- Tight crop so it looks crisp in a HUD line
+	return string.format("|T%s:%d:%d:0:0:64:64:4:60:4:60|t", icon, size, size)
+end
+
+local function getLootSpecNameAndIcon()
+	local lootSpecID = GetLootSpecialization()
+	if lootSpecID and lootSpecID ~= 0 then
+		local _, name, _, icon = GetSpecializationInfoForSpecID(lootSpecID)
+		return name or ("SpecID " .. lootSpecID), icon
+	end
+
+	local curIndex = GetSpecialization()
+	if curIndex then
+		local _, name, _, icon = GetSpecializationInfo(curIndex)
+		return name or "Current", icon
+	end
+
+	return "None", nil
+end
+
 local function format24hTime()
 	return date("%H:%M")
 end
@@ -137,6 +162,7 @@ local cache = {
 	stats = "",
 	gold = "",
 	loot = "None",
+	lootIcon = nil,
 	dura = nil,
 	fps = 0,
 	ms = 0,
@@ -156,7 +182,7 @@ end
 local function updateStatsLine()
 	local duraText = cache.dura and (cache.dura .. "%") or "--"
 	-- Layout: "###fps  ##ms  loot  dura" (tight like your screenshot)
-	local text = string.format("%dfps %dms %s %s", cache.fps, cache.ms, cache.loot, duraText)
+	local text = string.format("%dfps %dms %s %s", cache.fps, cache.ms, icon, cache.loot, duraText)
 	setIfChanged(statsFS, cc(text), "stats")
 end
 
@@ -166,7 +192,7 @@ local function updateGoldLine()
 end
 
 local function updateLoot()
-	cache.loot = getLootSpecName()
+	cache.loot, cache.lootIcon = getLootSpecNameAndIcon()
 	updateStatsLine()
 end
 
