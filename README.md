@@ -1,1 +1,3 @@
-Simple info display duh
+Simple info display!
+
+Show time, gold, repair %, etc.
