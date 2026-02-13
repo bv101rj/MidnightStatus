@@ -7,10 +7,10 @@ v0.5.1
 KISS method in mind
 
 Planned thingz:
-    - Crests
-        ideally I would like the crests to always show the highest value and chomp the lowest. 
-                e.g.  Vet X Champ Y Hero Z
-            Then when you get a Myth crest it would change layout to
-                e.g. Champ X Hero Y Myth Z 
-            Hiding the ones you dont need anymore
-    - Edit Mode Menu w/ Lib Edit mode, color changer (class or a chosen color), gold icons or txt (g,s,c)
+    1. Crests
+       - Ideally I would like the crests to always show the highest value and chomp the lowest. 
+           -     e.g.  Vet X Champ Y Hero Z
+           - Then when you get a Myth crest it would change layout to
+            -    e.g. Champ X Hero Y Myth Z 
+           - Hiding the ones you dont need anymore
+    2.Edit Mode Menu w/ Lib Edit mode, color changer (class or a chosen color), gold icons or txt (g,s,c)
