@@ -20,7 +20,7 @@ jobs:
           set -euo pipefail
           ver="${GITHUB_REF_NAME}"
           mkdir -p dist/MidnightStatus
-          cp -a MidnightStatus.toc MidnightStatus.lua dist/MidnightStatus/
+          cp -a Compat.lua MidnightStatus.toc MidnightStatus.lua dist/MidnightStatus/
           (cd dist && zip -r "MidnightStatus-${ver}.zip" MidnightStatus && unzip -l "MidnightStatus-${ver}.zip" | head -n 50)
       - name: Create GitHub Release and upload asset
         uses: softprops/action-gh-release@v2
