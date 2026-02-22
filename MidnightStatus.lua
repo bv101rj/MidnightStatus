@@ -3,7 +3,8 @@
 -- Tried to make this straight forward enough to now implode anyones games.
 -- Made with love, will def be adding more stuff as time goes on
 
-local ADDON = ...
+local addonName, MS = ...
+MS = MS or {}
 MidnightStatusDB = MidnightStatusDB or {}
 
 local f = CreateFrame("Frame", "MidnightStatusFrame", UIParent)
@@ -57,18 +58,10 @@ local function specIconTag(icon, size)
 end
 
 local function getLootSpecNameAndIcon()
-	local lootSpecID = GetLootSpecialization()
-	if lootSpecID and lootSpecID ~= 0 then
-		local _, name, _, icon = GetSpecializationInfoForSpecID(lootSpecID)
-		return name or ("SpecID " .. lootSpecID), icon
+	if MS and type(MS.GetSpecNameAndIcon) == "function" then
+		return MS.GetSpecNameAndIcon()
 	end
-
-	local curIndex = GetSpecialization()
-	if curIndex then
-		local _, name, _, icon = GetSpecializationInfo(curIndex)
-		return name or "Current", icon
-	end
-
+	-- fallback: show nothing rather than erroring
 	return "None", nil
 end
 
@@ -77,15 +70,13 @@ local function format24hTime()
 end
 
 local function format12hTime()
-	-- %I is zero-padded 01-12; tonumber removes the leading zero.
 	local h = tonumber(date("%I")) or 12
 	return string.format("%d:%s %s", h, date("%M"), date("%p"))
 end
 
 local function is24HourEnabled()
 	if MidnightStatusDB.use24HourTime == nil then
-		-- Preserve the addon's existing behavior as the default.
-		MidnightStatusDB.use24HourTime = true
+		MidnightStatusDB.use24HourTime = true -- preserve existing behavior
 	end
 	return MidnightStatusDB.use24HourTime
 end
@@ -104,12 +95,22 @@ local function formatCompactGold(copper)
 	local goldText
 
 	if g >= 1000000 then
-		goldText = string.format("%.2fm", g / 1000000)
-	elseif g >= 1000 then
-		goldText = string.format("%.0fk", g / 1000)
+	-- Truncate (don't round up) to 2 decimals, e.g. 3,299,999g -> 3.29m
+	local whole = math.floor(g / 1000000)
+	local frac = math.floor((g % 1000000) / 10000) -- 2 decimals
+	goldText = string.format("%d.%02dm", whole, frac)
+elseif g >= 1000 then
+	-- Truncate (don't round up) to 1 decimal, e.g. 3,999g -> 3.9k
+	local whole = math.floor(g / 1000)
+	local frac = math.floor((g % 1000) / 100) -- 1 decimal
+	if frac == 0 then
+		goldText = string.format("%dk", whole)
 	else
-		goldText = tostring(g)
+		goldText = string.format("%d.%dk", whole, frac)
 	end
+else
+	goldText = tostring(g)
+end
 	return string.format("%s%s %d%s %d%s", goldText, GOLD_ICON, s, SILVER_ICON, c, COPPER_ICON)
 end
 
@@ -152,11 +153,16 @@ end
 local CLASS_COLOR = "FFFFFFFF" -- fallback white ARGB
 do
 	local _, classFile = UnitClass("player")
-	local c = classFile and RAID_CLASS_COLORS[classFile]
+	local c = classFile and RAID_CLASS_COLORS and RAID_CLASS_COLORS[classFile]
 	if c then
-		CLASS_COLOR = string.format("FF%02X%02X%02X", c.r * 255, c.g * 255, c.b * 255)
+		CLASS_COLOR = string.format("FF%02X%02X%02X",
+			math.floor(c.r * 255 + 0.5),
+			math.floor(c.g * 255 + 0.5),
+			math.floor(c.b * 255 + 0.5)
+		)
 	end
 end
+
 
 local function cc(text)
 	return "|c" .. CLASS_COLOR .. text .. "|r"
@@ -185,12 +191,23 @@ local function updateTimeLine()
 end
 
 local function updateStatsLine()
-	local icon = specIconTag(cache.lootIcon, 14) -- must return "" if nil
-	local lootText = cache.loot or "None"
 	local duraText = cache.dura and (cache.dura .. "%") or "--"
 
-	local text = string.format("%dfps %dms %s%s %s", cache.fps or 0, cache.ms or 0, icon or "", lootText, duraText)
+	local parts = {
+		format("%dfps", cache.fps or 0),
+		format("%dms", cache.ms or 0),
+	}
 
+	-- Compat.lua returns "" on Classic (user requested no talents/spec there).
+	if cache.lootIcon then
+		table.insert(parts, specIconTag(cache.lootIcon, 14) .. (cache.loot or ""))
+	elseif cache.loot and cache.loot ~= "" then
+		table.insert(parts, cache.loot)
+	end
+
+	table.insert(parts, duraText)
+
+	local text = table.concat(parts, " ")
 	setIfChanged(statsFS, cc(text), "stats")
 end
 
@@ -255,30 +272,30 @@ local function setupLibEditMode()
 		p.point, p.x, p.y = point, x, y
 	end
 
-	LEM:AddFrame(f, onPositionChanged, defaultPos)
+LEM:AddFrame(f, onPositionChanged, defaultPos)
 
-	-- Optional extra Edit Mode settings (if the loaded LibEditMode build supports them)
-	if LEM.AddFrameSettings and LEM.SettingType then
-		local checkboxKind = LEM.SettingType.Checkbox or LEM.SettingType.Toggle
-		if checkboxKind then
-			LEM:AddFrameSettings(f, {
-				{
-					name = "24-hour time",
-					kind = checkboxKind,
-					default = true,
-					get = function(_layoutName)
-						return is24HourEnabled()
-					end,
-					set = function(_layoutName, value)
-						MidnightStatusDB.use24HourTime = not not value
-						updateTimeLine()
-					end,
-				},
-			})
-		end
+-- Optional extra Edit Mode settings (works on some backports too)
+if LEM.AddFrameSettings and LEM.SettingType then
+	local checkboxKind = LEM.SettingType.Checkbox or LEM.SettingType.Toggle
+	if checkboxKind then
+		LEM:AddFrameSettings(f, {
+			{
+				name = "24-hour time",
+				kind = checkboxKind,
+				default = true,
+				get = function(_layoutName)
+					return is24HourEnabled()
+				end,
+				set = function(_layoutName, value)
+					MidnightStatusDB.use24HourTime = not not value
+					updateTimeLine()
+				end,
+			},
+		})
 	end
+end
 
-	f.__lemManaged = true
+f.__lemManaged = true
 end
 
 -- -------- events
@@ -303,7 +320,14 @@ f:SetScript("OnEvent", function(_, event)
 		end
 	elseif event == "PLAYER_MONEY" then
 		updateGoldLine()
-	elseif event == "PLAYER_SPECIALIZATION_CHANGED" or event == "PLAYER_LOOT_SPEC_UPDATED" then
+	elseif (MS and type(MS.IsSpecEvent)=="function" and MS.IsSpecEvent(event))
+		or event == "PLAYER_SPECIALIZATION_CHANGED"
+		or event == "PLAYER_LOOT_SPEC_UPDATED"
+		or event == "PLAYER_TALENT_UPDATE"
+		or event == "CHARACTER_POINTS_CHANGED"
+		or event == "ACTIVE_TALENT_GROUP_CHANGED"
+		or event == "PLAYER_LEVEL_UP"
+	then
 		updateLoot()
 	elseif
 		event == "UPDATE_INVENTORY_DURABILITY"
@@ -316,8 +340,16 @@ end)
 
 f:RegisterEvent("PLAYER_ENTERING_WORLD")
 f:RegisterEvent("PLAYER_MONEY")
-f:RegisterEvent("PLAYER_SPECIALIZATION_CHANGED")
-f:RegisterEvent("PLAYER_LOOT_SPEC_UPDATED")
+if MS and type(MS.RegisterSpecEvents) == "function" then
+	MS.RegisterSpecEvents(f)
+else
+	f:RegisterEvent("PLAYER_SPECIALIZATION_CHANGED")
+	f:RegisterEvent("PLAYER_LOOT_SPEC_UPDATED")
+	f:RegisterEvent("PLAYER_TALENT_UPDATE")
+	f:RegisterEvent("CHARACTER_POINTS_CHANGED")
+	f:RegisterEvent("ACTIVE_TALENT_GROUP_CHANGED")
+	f:RegisterEvent("PLAYER_LEVEL_UP")
+end
 f:RegisterEvent("UPDATE_INVENTORY_DURABILITY")
 f:RegisterEvent("UPDATE_INVENTORY_ALERTS")
 f:RegisterEvent("PLAYER_EQUIPMENT_CHANGED")
