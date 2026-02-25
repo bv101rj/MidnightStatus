@@ -26,7 +26,7 @@ f:SetScript("OnDragStop", function(self)
 end)
 
 -- Click area (no backdrop)
-f:SetSize(300, 70)
+f:SetSize(300, 90)
 
 -- Fonts (no background, just text)
 local FONT = STANDARD_TEXT_FONT
@@ -237,12 +237,13 @@ end
 
 local function updateCrestLine()
 	resolveCrestIndices()
-
+	local a = getCrestCount("adventurer") or 0
+	local v = getCrestCount("veteran") or 0
 	local c = getCrestCount("champion") or 0
 	local h = getCrestCount("hero") or 0
 	local m = getCrestCount("myth") or 0
 
-	local text = string.format("C:%d  H:%d  M:%d", c, h, m)
+	local text = string.format("A:%d V:%d C:%d  H:%d  M:%d", a, v, c, h, m)
 	setIfChanged(crestFS, cc(text), "crest")
 end
 
@@ -435,6 +436,8 @@ f:SetScript("OnEvent", function(_, event)
 		or event == "UPDATE_INVENTORY_ALERTS"
 	then
 		updateDurability()
+	elseif event == "CURRENCY_DISPLAY_UPDATE" then
+		updateCrestLine()
 	end
 end)
 
@@ -453,6 +456,7 @@ end
 f:RegisterEvent("UPDATE_INVENTORY_DURABILITY")
 f:RegisterEvent("UPDATE_INVENTORY_ALERTS")
 f:RegisterEvent("PLAYER_EQUIPMENT_CHANGED")
+f:RegisterEvent("CURRENCY_DISPLAY_UPDATE")
 
 -- Tick only what must tick:
 -- time (1s) and fps/ms (0.5s). These update ONLY their own lines.
