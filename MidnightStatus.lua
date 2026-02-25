@@ -203,7 +203,7 @@ local function getCurrencyListInfo(i)
 
 	if GetCurrencyListInfo then
 		-- legacy: name, isHeader, isExpanded, isUnused, isWatched, count, ..., icon, itemID
-		local name, isHeader, _, _, _, count = GetCurrencyListInfo(i), _, _, _, _, icon = GetCurrencyListInfo(i)
+		local name, isHeader, _, _, _, count, _, _, _, _, icon = GetCurrencyListInfo(i)
 		return name, isHeader, count
 	end
 
@@ -217,7 +217,6 @@ local crestIconTag = {
 	hero = "",
 	myth = "",
 }
-
 
 local function resolveCrestIndices()
 	local size = getCurrencyListSize()
@@ -303,7 +302,19 @@ local function updateCrestLine()
 	local h = getCrestCount("hero") or 0
 	local m = getCrestCount("myth") or 0
 
-	local text = string.format("%s%d %s%d %s%d  %s%d  %s%d", crestIconTag.adventurer or "", a, crestIconTag.veteran or "", v, crestIconTag.champion or "" , champ, crestIconTag.hero or "", h,crestIconTag.myth or "" ,m)
+	local text = string.format(
+		"%s%d %s%d %s%d  %s%d  %s%d",
+		crestIconTag.adventurer or "",
+		a,
+		crestIconTag.veteran or "",
+		v,
+		crestIconTag.champion or "",
+		champ,
+		crestIconTag.hero or "",
+		h,
+		crestIconTag.myth or "",
+		m
+	)
 	setIfChanged(crestFS, cc(text), "crest")
 end
 
