@@ -203,7 +203,7 @@ local function getCurrencyListInfo(i)
 
 	if GetCurrencyListInfo then
 		-- legacy: name, isHeader, isExpanded, isUnused, isWatched, count, ..., icon, itemID
-		local name, isHeader, _, _, _, count = GetCurrencyListInfo(i), _, _, _, _, icon = getCurrencyListInfoetCurrencyListInfo(i)
+		local name, isHeader, _, _, _, count = GetCurrencyListInfo(i), _, _, _, _, icon = GetCurrencyListInfo(i)
 		return name, isHeader, count
 	end
 
