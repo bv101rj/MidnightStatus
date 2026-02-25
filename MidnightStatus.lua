@@ -239,11 +239,11 @@ local function updateCrestLine()
 	resolveCrestIndices()
 	local a = getCrestCount("adventurer") or 0
 	local v = getCrestCount("veteran") or 0
-	local c = getCrestCount("champion") or 0
+	local champ = getCrestCount("champion") or 0
 	local h = getCrestCount("hero") or 0
 	local m = getCrestCount("myth") or 0
 
-	local text = string.format("A:%d V:%d C:%d  H:%d  M:%d", a, v, c, h, m)
+	local text = string.format("A:%d V:%d C:%d  H:%d  M:%d", a, v, champ, h, m)
 	setIfChanged(crestFS, cc(text), "crest")
 end
 
