@@ -153,6 +153,14 @@ local function getDurabilityPercent()
 	return math.floor(lowest + 0.5)
 end
 
+local function inlineicon(icon, size)
+	if not icon then
+		return ""
+	end
+	size = size or 14
+	return string.format("|T%s:%d:%d:0:0|t", icon, size, size)
+end
+
 local CREST_NAMES = {
 	adventurer = "Adventurer Dawncrest",
 	veteran = "Veteran Dawncrest",
@@ -160,6 +168,9 @@ local CREST_NAMES = {
 	hero = "Hero Dawncrest",
 	myth = "Myth Dawncrest",
 }
+
+-- wait let me cook
+local crestsize = 14
 
 -- brazy style cache?
 local crestIndex = {
@@ -184,19 +195,29 @@ local function getCurrencyListInfo(i)
 			local name = info.name
 			local isHeader = info.isHeader
 			-- quantity field names vary by client; handle a few common ones
-			local qty = info.quantity or info.count or info.quantityEarned or info.amount
-			return name, isHeader, qty
+			local qty = info.quantity or info.count or info.quantityEarned or info.amountr or 0
+			local icon = info.iconfileid or info.icon
+			return name, isHeader, qty, icon
 		end
 	end
 
 	if GetCurrencyListInfo then
 		-- legacy: name, isHeader, isExpanded, isUnused, isWatched, count, ..., icon, itemID
-		local name, isHeader, _, _, _, count = GetCurrencyListInfo(i)
+		local name, isHeader, _, _, _, count = GetCurrencyListInfo(i), _, _, _, _, icon = getCurrencyListInfoetCurrencyListInfo(i)
 		return name, isHeader, count
 	end
 
-	return nil, nil, nil
+	return nil, nil, nil, nil
 end
+
+local crestIconTag = {
+	adventurer = "",
+	veteran = "",
+	champion = "",
+	hero = "",
+	myth = "",
+}
+
 
 local function resolveCrestIndices()
 	local size = getCurrencyListSize()
@@ -208,9 +229,10 @@ local function resolveCrestIndices()
 	for key, targetName in pairs(CREST_NAMES) do
 		if not crestIndex[key] then
 			for i = 1, size do
-				local name, isHeader = getCurrencyListInfo(i)
+				local name, isHeader, _, icon = getCurrencyListInfo(i)
 				if name == targetName and not isHeader then
 					crestIndex[key] = i
+					crestIconTag[key] = inlineicon(icon, 14)
 					break
 				end
 			end
@@ -281,7 +303,7 @@ local function updateCrestLine()
 	local h = getCrestCount("hero") or 0
 	local m = getCrestCount("myth") or 0
 
-	local text = string.format("A:%d V:%d C:%d  H:%d  M:%d", a, v, champ, h, m)
+	local text = string.format("%s%d %s%d %s%d  %s%d  %s%d", crestIconTag.adventurer or "", a, crestIconTag.veteran or "", v, crestIconTag.champion or "" , champ, crestIconTag.hero or "", h,crestIconTag.myth or "" ,m)
 	setIfChanged(crestFS, cc(text), "crest")
 end
 
