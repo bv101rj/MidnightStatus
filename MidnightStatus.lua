@@ -304,15 +304,15 @@ local function updateCrestLine()
 
 	local text = string.format(
 		"%s%d %s%d %s%d  %s%d  %s%d",
-		crestIconTag.adventurer or "",
+		crestIconTag.adventurer or "A:",
 		a,
-		crestIconTag.veteran or "",
+		crestIconTag.veteran or "V:",
 		v,
-		crestIconTag.champion or "",
+		crestIconTag.champion or "C:",
 		champ,
-		crestIconTag.hero or "",
+		crestIconTag.hero or "H:",
 		h,
-		crestIconTag.myth or "",
+		crestIconTag.myth or "M:",
 		m
 	)
 	setIfChanged(crestFS, cc(text), "crest")
