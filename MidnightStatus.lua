@@ -303,7 +303,7 @@ local function updateCrestLine()
 	local m = getCrestCount("myth") or 0
 
 	local text = string.format(
-		"%s%d %s%d %s%d  %s%d  %s%d",
+		"%s%d %s%d %s%d %s%d %s%d",
 		crestIconTag.adventurer or "A:",
 		a,
 		crestIconTag.veteran or "V:",
