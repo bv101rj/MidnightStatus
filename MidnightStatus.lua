@@ -46,6 +46,11 @@ goldFS:SetPoint("TOP", statsFS, "BOTTOM", 0, -2)
 goldFS:SetJustifyH("CENTER")
 goldFS:SetFont(FONT, 14, "OUTLINE")
 
+local crestFS = f:CreateFontString(nil, "OVERLAY")
+crestFS:SetPoint("TOP", goldFS, "BOTTOM", 0, -2)
+crestFS:SetJustifyH("CENTER")
+crestFS:SetFont(FONT, 14, "OUTLINE")
+
 -- -------- helpers
 
 local function specIconTag(icon, size)
@@ -95,22 +100,22 @@ local function formatCompactGold(copper)
 	local goldText
 
 	if g >= 1000000 then
-	-- Truncate (don't round up) to 2 decimals, e.g. 3,299,999g -> 3.29m
-	local whole = math.floor(g / 1000000)
-	local frac = math.floor((g % 1000000) / 10000) -- 2 decimals
-	goldText = string.format("%d.%02dm", whole, frac)
-elseif g >= 1000 then
-	-- Truncate (don't round up) to 1 decimal, e.g. 3,999g -> 3.9k
-	local whole = math.floor(g / 1000)
-	local frac = math.floor((g % 1000) / 100) -- 1 decimal
-	if frac == 0 then
-		goldText = string.format("%dk", whole)
+		-- Truncate (don't round up) to 2 decimals, e.g. 3,299,999g -> 3.29m
+		local whole = math.floor(g / 1000000)
+		local frac = math.floor((g % 1000000) / 10000) -- 2 decimals
+		goldText = string.format("%d.%02dm", whole, frac)
+	elseif g >= 1000 then
+		-- Truncate (don't round up) to 1 decimal, e.g. 3,999g -> 3.9k
+		local whole = math.floor(g / 1000)
+		local frac = math.floor((g % 1000) / 100) -- 1 decimal
+		if frac == 0 then
+			goldText = string.format("%dk", whole)
+		else
+			goldText = string.format("%d.%dk", whole, frac)
+		end
 	else
-		goldText = string.format("%d.%dk", whole, frac)
+		goldText = tostring(g)
 	end
-else
-	goldText = tostring(g)
-end
 	return string.format("%s%s %d%s %d%s", goldText, GOLD_ICON, s, SILVER_ICON, c, COPPER_ICON)
 end
 
@@ -148,6 +153,99 @@ local function getDurabilityPercent()
 	return math.floor(lowest + 0.5)
 end
 
+local CREST_NAMES = {
+	adventurer = "Adventurer Dawncrest",
+	veteran = "Veteran Dawncrest",
+	champion = "Champion Dawncrest",
+	hero = "Hero Dawncrest",
+	myth = "Myth Dawncrest",
+}
+
+-- brazy style cache?
+local crestIndex = {
+	adventurer = nil,
+	veteran = nil,
+	champion = nil,
+	hero = nil,
+	myth = nil,
+}
+
+local function getCurrencyListSize()
+	return (C_CurrencyInfo and C_CurrencyInfo.GetCurrencyListSize and C_CurrencyInfo.GetCurrencyListSize())
+		or (GetCurrencyListSize and GetCurrencyListSize())
+		or 0
+end
+
+local function getCurrencyListInfo(i)
+	-- Prefer modern table API, fall back to legacy tuple API if present
+	if C_CurrencyInfo and C_CurrencyInfo.GetCurrencyListInfo then
+		local info = C_CurrencyInfo.GetCurrencyListInfo(i)
+		if info then
+			local name = info.name
+			local isHeader = info.isHeader
+			-- quantity field names vary by client; handle a few common ones
+			local qty = info.quantity or info.count or info.quantityEarned or info.amount
+			return name, isHeader, qty
+		end
+	end
+
+	if GetCurrencyListInfo then
+		-- legacy: name, isHeader, isExpanded, isUnused, isWatched, count, ..., icon, itemID
+		local name, isHeader, _, _, _, count = GetCurrencyListInfo(i)
+		return name, isHeader, count
+	end
+
+	return nil, nil, nil
+end
+
+local function resolveCrestIndices()
+	local size = getCurrencyListSize()
+	if size <= 0 then
+		return
+	end
+
+	-- Only scan for missing ones
+	for key, targetName in pairs(CREST_NAMES) do
+		if not crestIndex[key] then
+			for i = 1, size do
+				local name, isHeader = getCurrencyListInfo(i)
+				if name == targetName and not isHeader then
+					crestIndex[key] = i
+					break
+				end
+			end
+		end
+	end
+end
+
+local function getCrestCount(key)
+	local idx = crestIndex[key]
+	if not idx then
+		return nil
+	end
+	local name, isHeader, qty = getCurrencyListInfo(idx)
+	if isHeader then
+		return nil
+	end
+	if name ~= CREST_NAMES[key] then
+		-- currency list shifted; force re-resolve
+		crestIndex[key] = nil
+		return nil
+	end
+	return qty
+end
+
+local function updateCrestLine()
+	resolveCrestIndices()
+
+	local c = getCrestCount("champion") or 0
+	local h = getCrestCount("hero") or 0
+	local m = getCrestCount("myth") or 0
+
+	local text = string.format("C:%d  H:%d  M:%d", c, h, m)
+	setIfChanged(crestFS, cc(text), "crest")
+end
+
 -- -------- targeted updates (avoid rebuilding everything)
 
 local CLASS_COLOR = "FFFFFFFF" -- fallback white ARGB
@@ -155,14 +253,14 @@ do
 	local _, classFile = UnitClass("player")
 	local c = classFile and RAID_CLASS_COLORS and RAID_CLASS_COLORS[classFile]
 	if c then
-		CLASS_COLOR = string.format("FF%02X%02X%02X",
+		CLASS_COLOR = string.format(
+			"FF%02X%02X%02X",
 			math.floor(c.r * 255 + 0.5),
 			math.floor(c.g * 255 + 0.5),
 			math.floor(c.b * 255 + 0.5)
 		)
 	end
 end
-
 
 local function cc(text)
 	return "|c" .. CLASS_COLOR .. text .. "|r"
@@ -173,6 +271,7 @@ local cache = {
 	stats = "",
 	gold = "",
 	loot = "None",
+	crest = "",
 	dura = nil,
 	fps = 0,
 	ms = 0,
@@ -272,30 +371,30 @@ local function setupLibEditMode()
 		p.point, p.x, p.y = point, x, y
 	end
 
-LEM:AddFrame(f, onPositionChanged, defaultPos)
+	LEM:AddFrame(f, onPositionChanged, defaultPos)
 
--- Optional extra Edit Mode settings (works on some backports too)
-if LEM.AddFrameSettings and LEM.SettingType then
-	local checkboxKind = LEM.SettingType.Checkbox or LEM.SettingType.Toggle
-	if checkboxKind then
-		LEM:AddFrameSettings(f, {
-			{
-				name = "24-hour time",
-				kind = checkboxKind,
-				default = true,
-				get = function(_layoutName)
-					return is24HourEnabled()
-				end,
-				set = function(_layoutName, value)
-					MidnightStatusDB.use24HourTime = not not value
-					updateTimeLine()
-				end,
-			},
-		})
+	-- Optional extra Edit Mode settings (works on some backports too)
+	if LEM.AddFrameSettings and LEM.SettingType then
+		local checkboxKind = LEM.SettingType.Checkbox or LEM.SettingType.Toggle
+		if checkboxKind then
+			LEM:AddFrameSettings(f, {
+				{
+					name = "24-hour time",
+					kind = checkboxKind,
+					default = true,
+					get = function(_layoutName)
+						return is24HourEnabled()
+					end,
+					set = function(_layoutName, value)
+						MidnightStatusDB.use24HourTime = not not value
+						updateTimeLine()
+					end,
+				},
+			})
+		end
 	end
-end
 
-f.__lemManaged = true
+	f.__lemManaged = true
 end
 
 -- -------- events
@@ -320,7 +419,8 @@ f:SetScript("OnEvent", function(_, event)
 		end
 	elseif event == "PLAYER_MONEY" then
 		updateGoldLine()
-	elseif (MS and type(MS.IsSpecEvent)=="function" and MS.IsSpecEvent(event))
+	elseif
+		(MS and type(MS.IsSpecEvent) == "function" and MS.IsSpecEvent(event))
 		or event == "PLAYER_SPECIALIZATION_CHANGED"
 		or event == "PLAYER_LOOT_SPEC_UPDATED"
 		or event == "PLAYER_TALENT_UPDATE"
