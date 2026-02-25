@@ -2,7 +2,8 @@ __Simple info display!__
 __Show time, gold, repair %, etc.__
 v0.5.1
 
-<img width="319" height="134" alt="image" src="https://github.com/user-attachments/assets/5cecfcb2-a8a8-4645-917e-025cd9cfd422" />
+<img width="303" height="158" alt="image" src="https://github.com/user-attachments/assets/2a7f8c3c-a24f-4bf6-b741-c5d2221901a6" />
+
 
 KISS method in mind
 
