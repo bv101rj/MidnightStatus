@@ -37,15 +37,30 @@ function MS.GetSpecNameAndIcon()
 		return "None", nil
 	end
 	-- Classic flavors: user requested no talents/spec text on the HUD.
-	if type(GetNumTalentTabs) == "function" and type(GetTalentTabInfo) == "function" then
+	if
+		type(GetNumTalentTabs) == "function"
+		and type(GetNumTalents) == "function"
+		and type(GetTalentInfo) == "function"
+	then
 		local numTabs = GetNumTalentTabs()
 		if numTabs and numTabs > 0 then
 			local pts = {}
+
 			for tab = 1, numTabs do
-				-- Classic signature returns pointsSpent as the 3rd value
-				local _, _, pointsSpent = GetTalentTabInfo(tab)
-				pts[#pts + 1] = tostring(pointsSpent or 0)
+				local total = 0
+				local n = GetNumTalents(tab) or 0
+
+				for t = 1, n do
+					-- Classic: rank is usually the 5th return
+					local _, _, _, _, rank = GetTalentInfo(tab, t)
+					if type(rank) == "number" then
+						total = total + rank
+					end
+				end
+
+				pts[#pts + 1] = tostring(total)
 			end
+
 			return table.concat(pts, "/"), nil
 		end
 	end
