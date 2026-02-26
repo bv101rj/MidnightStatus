@@ -6,6 +6,7 @@
 local addonName, MS = ...
 MS = MS or {}
 MidnightStatusDB = MidnightStatusDB or {}
+MidnightStatusDB.layouts = MidnightStatusDB.layouts or {}
 
 local f = CreateFrame("Frame", "MidnightStatusFrame", UIParent)
 f:SetClampedToScreen(true)
@@ -295,26 +296,37 @@ local function setIfChanged(fs, newText, key)
 end
 
 local function updateCrestLine()
-	resolveCrestIndices()
-	local a = getCrestCount("adventurer") or 0
-	local v = getCrestCount("veteran") or 0
-	local champ = getCrestCount("champion") or 0
-	local h = getCrestCount("hero") or 0
-	local m = getCrestCount("myth") or 0
+	if not activelayoutname or not MidnightStatusDB.layouts[activelayoutname] then
+		return
+	end
+	local opt = MidnightStatusDB.layouts[activelayoutname]
 
-	local text = string.format(
-		"%s%d %s%d %s%d %s%d %s%d",
-		crestIconTag.adventurer or "A:",
-		a,
-		crestIconTag.veteran or "V:",
-		v,
-		crestIconTag.champion or "C:",
-		champ,
-		crestIconTag.hero or "H:",
-		h,
-		crestIconTag.myth or "M:",
-		m
-	)
+	resolveCrestIndices()
+
+	local parts = {}
+	if opt.showadv then
+		local a = getCrestCount("adventurer") or 0
+		table.insert(parts, string.format("%s%d", crestIconTag.adventurer or "", a))
+	end
+	if opt.showvet then
+		local v = getCrestCount("veteran") or 0
+		table.insert(parts, string.format("%s%d", crestIconTag.veteran or "", v))
+	end
+	if opt.showchamp then
+		local c = getCrestCount("champion") or 0
+		table.insert(parts, string.format("%s%d", crestIconTag.champion or "", c))
+	end
+	if opt.showhero then
+		local h = getCrestCount("hero") or 0
+		table.insert(parts, string.format("%s%d", crestIconTag.hero or "", h))
+	end
+	if opt.showmyth then
+		local m = getCrestCount("myth") or 0
+		table.insert(parts, string.format("%s%d", crestIconTag.myth or "", m))
+	end
+
+	local text = #parts > 0 and table.concat(parts, "  ") or ""
+
 	setIfChanged(crestFS, cc(text), "crest")
 end
 
@@ -384,13 +396,20 @@ local function setupLibEditMode()
 
 	local defaultPos = { point = "TOP", x = 0, y = -80 }
 
+	local activelayoutname = nil
 	LEM:RegisterCallback("layout", function(layoutName)
+		activelayoutname = layoutName
 		MidnightStatusDB.layouts = MidnightStatusDB.layouts or {}
 		MidnightStatusDB.layouts[layoutName] = MidnightStatusDB.layouts[layoutName]
 			or {
 				point = defaultPos.point,
 				x = defaultPos.x,
 				y = defaultPos.y,
+				adv = true,
+				vet = true,
+				champ = true,
+				hero = true,
+				myth = true,
 			}
 
 		local p = MidnightStatusDB.layouts[layoutName]
@@ -427,6 +446,68 @@ local function setupLibEditMode()
 			})
 		end
 	end
+	LEM:AddFrameSettings(f, {
+		{
+			name = "Show Adventurer Dawncrest",
+			kind = LEM.SettingType.Checkbox,
+			default = true,
+			get = function(layoutName)
+				return MidnightStatusDB.layouts[layoutName].showadv
+			end,
+			set = function(layoutName, value)
+				MidnightStatusDB.layouts[layoutName].showadv = value
+				updateCrestLine()
+			end,
+		},
+		{
+			name = "Show Veteran Dawncrests",
+			kind = LEM.SettingType.Checkbox,
+			default = true,
+			get = function(layoutName)
+				return MidnightStatusDB.layouts[layoutName].showvet
+			end,
+			set = function(layoutName, value)
+				MidnightStatusDB.layouts[layoutName].showvet = value
+				updateCrestLine()
+			end,
+		},
+		{
+			name = "Show Champion Dawncrest",
+			kind = LEM.SettingType.Checkbox,
+			default = true,
+			get = function(layoutName)
+				return MidnightStatusDB.layouts[layoutName].showchamp
+			end,
+			set = function(layoutName, value)
+				MidnightStatusDB.layouts[layoutName].showchamp = value
+				updateCrestLine()
+			end,
+		},
+		{
+			name = "Show Hero Dawncrest",
+			kind = LEM.SettingType.Checkbox,
+			default = true,
+			get = function(layoutName)
+				return MidnightStatusDB.layouts[layoutName].showhero
+			end,
+			set = function(layoutName, value)
+				MidnightStatusDB.layouts[layoutName].showhero = value
+				updateCrestLine()
+			end,
+		},
+		{
+			name = "Show Myth Dawncrest",
+			kind = LEM.SettingType.Checkbox,
+			default = true,
+			get = function(layoutName)
+				return MidnightStatusDB.layouts[layoutName].showmyth
+			end,
+			set = function(layoutName, value)
+				MidnightStatusDB.layouts[layoutName].showmyth = value
+				updateCrestLine()
+			end,
+		},
+	})
 
 	f.__lemManaged = true
 end
