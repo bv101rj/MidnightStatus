@@ -14,47 +14,61 @@ MS.isRetail = (WOW_PROJECT_ID == WOW_PROJECT_MAINLINE)
 -- Retail: loot spec (or current spec)
 -- Classic flavors: primary talent tab (most points spent)
 function MS.GetSpecNameAndIcon()
-  -- Retail: use (loot) specialization APIs
-  if MS.isRetail then
-    if type(GetLootSpecialization) == "function"
-      and type(GetSpecialization) == "function"
-      and type(GetSpecializationInfo) == "function"
-    then
-      local lootSpecID = GetLootSpecialization()
-      if lootSpecID and lootSpecID ~= 0 and type(GetSpecializationInfoForSpecID) == "function" then
-        local _, name, _, icon = GetSpecializationInfoForSpecID(lootSpecID)
-        return name or ("SpecID " .. lootSpecID), icon
-      end
+	-- Retail: use (loot) specialization APIs
+	if MS.isRetail then
+		if
+			type(GetLootSpecialization) == "function"
+			and type(GetSpecialization) == "function"
+			and type(GetSpecializationInfo) == "function"
+		then
+			local lootSpecID = GetLootSpecialization()
+			if lootSpecID and lootSpecID ~= 0 and type(GetSpecializationInfoForSpecID) == "function" then
+				local _, name, _, icon = GetSpecializationInfoForSpecID(lootSpecID)
+				return name or ("SpecID " .. lootSpecID), icon
+			end
 
-      local curIndex = GetSpecialization()
-      if curIndex then
-        local _, name, _, icon = GetSpecializationInfo(curIndex)
-        return name or "Current", icon
-      end
-    end
+			local curIndex = GetSpecialization()
+			if curIndex then
+				local _, name, _, icon = GetSpecializationInfo(curIndex)
+				return name or "Current", icon
+			end
+		end
 
-    return "None", nil
-  end
-  -- Classic flavors: user requested no talents/spec text on the HUD.
-  return "", nil
+		return "None", nil
+	end
+	-- Classic flavors: user requested no talents/spec text on the HUD.
+	if type(GetNumTalentTabs) == "function" and type(GetTalentTabInfo) == "function" then
+		local numTabs = GetNumTalentTabs()
+		if numTabs and numTabs > 0 then
+			local pts = {}
+			for tab = 1, numTabs do
+				-- Classic signature returns pointsSpent as the 3rd value
+				local _, _, pointsSpent = GetTalentTabInfo(tab)
+				pts[#pts + 1] = tostring(pointsSpent or 0)
+			end
+			return table.concat(pts, "/"), nil
+		end
+	end
+	return "", nil
 end
 
 -- Register only the events that matter for spec changes on each client.
 function MS.RegisterSpecEvents(frame)
-  if not frame or type(frame.RegisterEvent) ~= "function" then return end
+	if not frame or type(frame.RegisterEvent) ~= "function" then
+		return
+	end
 
-  -- Retail spec / loot spec changes
-  frame:RegisterEvent("PLAYER_SPECIALIZATION_CHANGED")
-  frame:RegisterEvent("PLAYER_LOOT_SPEC_UPDATED")
+	-- Retail spec / loot spec changes
+	frame:RegisterEvent("PLAYER_SPECIALIZATION_CHANGED")
+	frame:RegisterEvent("PLAYER_LOOT_SPEC_UPDATED")
 
-  if not MS.isRetail then
-    -- Classic talents are intentionally hidden; no spec/talent refresh events needed.
-    return
-  end
+	if not MS.isRetail then
+		-- Classic talents are intentionally hidden; no spec/talent refresh events needed.
+		return
+	end
 end
 
 -- Helper: should we refresh spec for this event?
 function MS.IsSpecEvent(event)
-  return event == "PLAYER_SPECIALIZATION_CHANGED"
-    or event == "PLAYER_LOOT_SPEC_UPDATED"
+	return event == "PLAYER_SPECIALIZATION_CHANGED" or event == "PLAYER_LOOT_SPEC_UPDATED"
 end
