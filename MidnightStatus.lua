@@ -443,71 +443,69 @@ local function setupLibEditMode()
 						updateTimeLine()
 					end,
 				},
+				{
+					name = "Show Adventurer Dawncrest",
+					kind = LEM.SettingType.Checkbox,
+					default = true,
+					get = function(layoutName)
+						return MidnightStatusDB.layouts[layoutName].showadv
+					end,
+					set = function(layoutName, value)
+						MidnightStatusDB.layouts[layoutName].showadv = value
+						updateCrestLine()
+					end,
+				},
+				{
+					name = "Show Veteran Dawncrests",
+					kind = LEM.SettingType.Checkbox,
+					default = true,
+					get = function(layoutName)
+						return MidnightStatusDB.layouts[layoutName].showvet
+					end,
+					set = function(layoutName, value)
+						MidnightStatusDB.layouts[layoutName].showvet = value
+						updateCrestLine()
+					end,
+				},
+				{
+					name = "Show Champion Dawncrest",
+					kind = LEM.SettingType.Checkbox,
+					default = true,
+					get = function(layoutName)
+						return MidnightStatusDB.layouts[layoutName].showchamp
+					end,
+					set = function(layoutName, value)
+						MidnightStatusDB.layouts[layoutName].showchamp = value
+						updateCrestLine()
+					end,
+				},
+				{
+					name = "Show Hero Dawncrest",
+					kind = LEM.SettingType.Checkbox,
+					default = true,
+					get = function(layoutName)
+						return MidnightStatusDB.layouts[layoutName].showhero
+					end,
+					set = function(layoutName, value)
+						MidnightStatusDB.layouts[layoutName].showhero = value
+						updateCrestLine()
+					end,
+				},
+				{
+					name = "Show Myth Dawncrest",
+					kind = LEM.SettingType.Checkbox,
+					default = true,
+					get = function(layoutName)
+						return MidnightStatusDB.layouts[layoutName].showmyth
+					end,
+					set = function(layoutName, value)
+						MidnightStatusDB.layouts[layoutName].showmyth = value
+						updateCrestLine()
+					end,
+				},
 			})
 		end
 	end
-	LEM:AddFrameSettings(f, {
-		{
-			name = "Show Adventurer Dawncrest",
-			kind = LEM.SettingType.Checkbox,
-			default = true,
-			get = function(layoutName)
-				return MidnightStatusDB.layouts[layoutName].showadv
-			end,
-			set = function(layoutName, value)
-				MidnightStatusDB.layouts[layoutName].showadv = value
-				updateCrestLine()
-			end,
-		},
-		{
-			name = "Show Veteran Dawncrests",
-			kind = LEM.SettingType.Checkbox,
-			default = true,
-			get = function(layoutName)
-				return MidnightStatusDB.layouts[layoutName].showvet
-			end,
-			set = function(layoutName, value)
-				MidnightStatusDB.layouts[layoutName].showvet = value
-				updateCrestLine()
-			end,
-		},
-		{
-			name = "Show Champion Dawncrest",
-			kind = LEM.SettingType.Checkbox,
-			default = true,
-			get = function(layoutName)
-				return MidnightStatusDB.layouts[layoutName].showchamp
-			end,
-			set = function(layoutName, value)
-				MidnightStatusDB.layouts[layoutName].showchamp = value
-				updateCrestLine()
-			end,
-		},
-		{
-			name = "Show Hero Dawncrest",
-			kind = LEM.SettingType.Checkbox,
-			default = true,
-			get = function(layoutName)
-				return MidnightStatusDB.layouts[layoutName].showhero
-			end,
-			set = function(layoutName, value)
-				MidnightStatusDB.layouts[layoutName].showhero = value
-				updateCrestLine()
-			end,
-		},
-		{
-			name = "Show Myth Dawncrest",
-			kind = LEM.SettingType.Checkbox,
-			default = true,
-			get = function(layoutName)
-				return MidnightStatusDB.layouts[layoutName].showmyth
-			end,
-			set = function(layoutName, value)
-				MidnightStatusDB.layouts[layoutName].showmyth = value
-				updateCrestLine()
-			end,
-		},
-	})
 
 	f.__lemManaged = true
 end
