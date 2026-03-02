@@ -196,8 +196,8 @@ local function getCurrencyListInfo(i)
 			local name = info.name
 			local isHeader = info.isHeader
 			-- quantity field names vary by client; handle a few common ones
-			local qty = info.quantity or info.count or info.quantityEarned or info.amountr or 0
-			local icon = info.iconfileid or info.icon
+			local qty = info.quantity or info.quantityEarned or info.count or info.amount or 0
+			local icon = info.iconFileID or info.icon
 			return name, isHeader, qty, icon
 		end
 	end
@@ -205,7 +205,7 @@ local function getCurrencyListInfo(i)
 	if GetCurrencyListInfo then
 		-- legacy: name, isHeader, isExpanded, isUnused, isWatched, count, ..., icon, itemID
 		local name, isHeader, _, _, _, count, _, _, _, _, icon = GetCurrencyListInfo(i)
-		return name, isHeader, count
+		return name, isHeader, count, icon
 	end
 
 	return nil, nil, nil, nil
@@ -294,6 +294,8 @@ local function setIfChanged(fs, newText, key)
 		fs:SetText(newText)
 	end
 end
+
+local activelayoutname = nil
 
 local function updateCrestLine()
 	if not activelayoutname or not MidnightStatusDB.layouts[activelayoutname] then
@@ -396,7 +398,6 @@ local function setupLibEditMode()
 
 	local defaultPos = { point = "TOP", x = 0, y = -80 }
 
-	local activelayoutname = nil
 	LEM:RegisterCallback("layout", function(layoutName)
 		activelayoutname = layoutName
 		MidnightStatusDB.layouts = MidnightStatusDB.layouts or {}
@@ -405,11 +406,11 @@ local function setupLibEditMode()
 				point = defaultPos.point,
 				x = defaultPos.x,
 				y = defaultPos.y,
-				adv = true,
-				vet = true,
-				champ = true,
-				hero = true,
-				myth = true,
+				showadv = true,
+				showvet = true,
+				showchamp = true,
+				showhero = true,
+				showmyth = true,
 			}
 
 		local p = MidnightStatusDB.layouts[layoutName]
@@ -515,7 +516,7 @@ end
 f:SetScript("OnEvent", function(_, event)
 	if event == "PLAYER_ENTERING_WORLD" then
 		setupLibEditMode()
-
+		C_Timer.After(1, updateCrestLine)
 		updateTimeLine()
 		updateLoot()
 		updateDurability()
