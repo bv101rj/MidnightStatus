@@ -4,7 +4,7 @@
 ## Author: Rammorage - Zul'jin baby this one was for the homies 
 ## Version: 0.7.0
 ## SavedVariables: MidnightStatusDB
-## OptionalDeps: LibEditMode
+## Dependencies: LibEditMode
 ## IconTexture: 136223
 
 Compat.lua
