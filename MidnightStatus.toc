@@ -1,11 +1,12 @@
 ## Interface: 120007, 120000, 50503, 20505, 11508
 ## Title: MidnightStatus
-## Notes: Lightweight status panel (time, loot spec, gold, durability, FPS, MS)
-## Author: Rammorage - Zul'jin baby this one was for the homies 
-## Version: 0.7.0
+## Notes: Lightweight status panel (time, loot spec, gold, durability, FPS, MS, currencies)
+## Author: Rammorage - Zul'jin baby this one was for the homies
+## Version: 0.9.0
 ## SavedVariables: MidnightStatusDB
-## Dependencies: LibEditMode
+## OptionalDeps: LibEditMode
 ## IconTexture: 136223
 
 Compat.lua
+Currency.lua
 MidnightStatus.lua
