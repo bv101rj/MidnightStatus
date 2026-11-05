@@ -210,6 +210,26 @@ function MS.AddCurrency(opt, id)
 	return entry
 end
 
+-- Entries added before the currency list was available get order 9999, so
+-- re-sort once a real scan lands. Stable: unknown IDs keep their relative order.
+function MS.SortSelection(opt)
+	local n = #opt.currencies
+	if n < 2 then
+		return
+	end
+	local idx = {}
+	for i = 1, n do
+		idx[opt.currencies[i]] = i
+	end
+	table.sort(opt.currencies, function(a, b)
+		local oa, ob = currencyOrder(a.id), currencyOrder(b.id)
+		if oa ~= ob then
+			return oa < ob
+		end
+		return idx[a] < idx[b]
+	end)
+end
+
 function MS.RemoveCurrency(opt, id)
 	local _, at = MS.FindCurrency(opt, id)
 	if at then
@@ -255,6 +275,7 @@ function MS.OpenPicker(anchor)
 
 	MS.ScanCurrencies()
 	local opt = MS.GetOptions()
+	MS.SortSelection(opt)
 
 	MenuUtil.CreateContextMenu(anchor or UIParent, function(_, root)
 		root:CreateTitle("MidnightStatus")
@@ -263,6 +284,7 @@ function MS.OpenPicker(anchor)
 			return opt.autoWindow
 		end, function()
 			opt.autoWindow = not opt.autoWindow
+			MS.SaveTemplate()
 			MS.UpdateCurrencyLine()
 			return refresh()
 		end)
@@ -274,6 +296,7 @@ function MS.OpenPicker(anchor)
 					return opt.autoCount == n
 				end, function()
 					opt.autoCount = n
+					MS.SaveTemplate()
 					MS.UpdateCurrencyLine()
 					return refresh()
 				end)
@@ -284,6 +307,7 @@ function MS.OpenPicker(anchor)
 			return opt.hideZero
 		end, function()
 			opt.hideZero = not opt.hideZero
+			MS.SaveTemplate()
 			MS.UpdateCurrencyLine()
 			return refresh()
 		end)
@@ -292,6 +316,7 @@ function MS.OpenPicker(anchor)
 			return opt.showWeekly
 		end, function()
 			opt.showWeekly = not opt.showWeekly
+			MS.SaveTemplate()
 			MS.UpdateCurrencyLine()
 			return refresh()
 		end)
@@ -324,6 +349,7 @@ function MS.OpenPicker(anchor)
 						return MS.FindCurrency(opt, e.id) ~= nil
 					end, function()
 						MS.ToggleCurrency(opt, e.id)
+						MS.SaveTemplate()
 						MS.UpdateCurrencyLine()
 						return refresh()
 					end)
@@ -348,6 +374,7 @@ function MS.OpenPicker(anchor)
 					return true
 				end, function()
 					MS.RemoveCurrency(opt, id)
+					MS.SaveTemplate()
 					MS.UpdateCurrencyLine()
 					return refresh()
 				end)
@@ -364,6 +391,7 @@ function MS.OpenPicker(anchor)
 					return entry.pin == true
 				end, function()
 					entry.pin = not entry.pin
+					MS.SaveTemplate()
 					MS.UpdateCurrencyLine()
 					return refresh()
 				end)
@@ -373,6 +401,7 @@ function MS.OpenPicker(anchor)
 		root:CreateDivider()
 		root:CreateButton("Clear all", function()
 			wipe(opt.currencies)
+			MS.SaveTemplate()
 			MS.UpdateCurrencyLine()
 			return refresh()
 		end)
@@ -382,6 +411,7 @@ function MS.OpenPicker(anchor)
 			return MS.Is24Hour()
 		end, function()
 			MidnightStatusDB.use24HourTime = not MS.Is24Hour()
+			MS.Invalidate()
 			MS.UpdateTimeLine()
 			return refresh()
 		end)
