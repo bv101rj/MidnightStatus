@@ -1,0 +1,14 @@
+## Interface: 11508, 11509, 20505, 20506, 30405, 40402, 50503, 50504
+## Title: MidnightStatus
+## Notes: Lightweight status panel (time, loot spec, gold, durability, FPS, MS, currencies)
+## Author: Rammorage - Zul'jin baby this one was for the homies
+## Version: 1.3.5
+## SavedVariables: MidnightStatusDB
+## SavedVariablesPerCharacter: MidnightStatusCharDB
+## OptionalDeps: LibEditMode
+## IconTexture: 136223
+## X-TOC: classic
+
+Compat.lua
+Currency.lua
+MidnightStatus.lua
